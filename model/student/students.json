@@ -1,0 +1,19 @@
+loadData([{
+	"id":1001,
+	"name":"张山",
+	"gender":"男",
+	"className":"三年一班",
+	"grade":"90"
+},{
+	"id":1002,
+	"name":"李思",
+	"gender":"女",
+	"className":"三年一班",
+	"grade":"89"
+},{
+	"id":1003,
+	"name":"王武",
+	"gender":"女",
+	"className":"三年一班",
+	"grade":"90"
+}]);

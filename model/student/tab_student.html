@@ -1,0 +1,161 @@
+<style type="text/css">
+	th{
+		background:#99F;
+		height:24px;}
+	.hiddenTr{ display:none; }
+</style>
+<script type="text/javascript">
+$(function(){
+	//加载学生信息
+	loadStudentData();
+	//为全选绑定事件  change
+	$(".opt_btns :checkbox").off("change");
+	$(".opt_btns :checkbox").change(function(){
+		if($(this).prop("checked")){
+			$("#stuTbl td :checkbox:visible").prop("checked",true);
+		}else{
+			$("#stuTbl td :checkbox").prop("checked",false);
+		}
+	});
+	//为按钮绑定事件
+	$(".opt_btns button").off("click");
+	$(".opt_btns button").click(function(){
+		//opt按钮中的文字
+		var opt = $(this).text();
+		switch(opt){
+			case "添加":
+				$(".tab_content").load("model/student/addStudent.html");
+			break;
+			case "修改":	
+				var id = $("#stuTbl :checkbox:checked").map(function(index,item){
+					return item.value;
+				}).get(0);
+				if(id){
+					//获取要修改学生的信息
+					var stu ;
+					$.ajax("model/student/updStudent.json",{
+						async:false,
+						success:function(data){
+						stu = data;
+					}
+					});
+					//加载修改学生信息的页面
+					$(".tab_content").load("model/student/updStudent.html",function(){
+						console.log("初始化页面");
+						$(":text[name='name']").val(stu.name);
+						console.log($("select[name='clazzId']"));
+						$("select[name='clazzId']").val(2001);
+						
+					});
+				}else{
+					alert("先选择要删除的学生！");
+				}
+				
+			break;
+			case "删除":
+				//获取要删除元素的id
+				var ids = $("#stuTbl :checkbox:checked").map(function(index,item){
+					return item.value;
+				}).get().join();
+				//将删除的ID发送给后台
+				var url = "http://172.16.20.87:8080/sms/delStudents";
+				$.ajax(url,{
+					dataType:"jsonp",
+					jsonp:"jsonp",
+					jsonpCallback:"aaa",
+					data:{ids:ids},
+					success:function(){
+						alert("删除成功");
+						//刷新
+						loadStudentData();		
+					}
+				});
+			break;
+			case "刷新":
+				loadStudentData();
+			break;
+		}
+	});
+	//为筛选按钮绑定事件
+	$(".search :submit").off("click")
+	$(".search :submit").on("click",function(){
+		var key = $("select[name='search_key']").val();	//name class grade
+		var val = $(":text[name='search_val']").val();
+		var data = new Object();
+		data[key] = val;
+		//加载数据
+		loadStudentData(data);
+	});
+});
+//加载学生信息
+function loadStudentData(data){
+	data = data||{};
+	//跨域
+	var url = "http://192.168.15.131:80/sms/model/student/students.json";
+	$.ajax(url,{
+		dataType:"jsonp",
+		jsonp:"jsonp",
+		data:data,
+		jsonpCallback:"loadData"
+	});
+}
+function loadData(data){
+		//清空tbody中的原有信息
+		$("#stuTbl tbody tr").remove(":not(:first)");
+		$(".opt_btns :checkbox").prop("checked",false);
+		data.forEach(function(item){
+			//克隆行（结构）
+			var newTr = $(".hiddenTr").clone().removeClass("hiddenTr");
+			//将内容填充到行中
+			newTr.find(":checkbox").val(item.id);
+			newTr.children().eq(1).text(item.name);
+			newTr.children().eq(2).text(item.className);
+			newTr.children().eq(3).text(item.gender);
+			newTr.children().eq(4).text(item.grade);
+			//将处理好的行追加到tbody上
+			$("#stuTbl tbody").append(newTr);
+			
+		});
+}
+</script>
+<!--学生管理-->
+			<div class="inner">
+				<div class="search">
+					<select name="search_key" >
+						<option value="name">姓名</option>
+						<option value="clazz">班级</option>
+						<option value="grade">成绩</option>
+					</select>
+					<input name="search_val" type="text">
+					<input type="submit" value="search">
+				</div>
+				<table id="stuTbl">
+					<thead>
+						<tr>
+							<th>选择</th>
+							<th>姓名</th>
+							<th>班级</th>
+							<th>性别</th>
+							<th>分数</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="hiddenTr">
+							<td>
+				<input type="checkbox" >
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="opt_btns">
+					<input type="checkbox">
+					<button>添加</button>
+					<button>修改</button>
+					<button>删除</button>
+                    <button>刷新</button>
+				</div>
+			</div>
